@@ -46,11 +46,12 @@ for deviceID, thermostat in thermostats.items():
 	hvac_mode = thermostat['hvac_mode']
 	target_temperature_f = thermostat['target_temperature_f']
 	ambient_temperature_f = thermostat['ambient_temperature_f']
+	fan_timer_active = thermostat['fan_timer_active']
 
 	timeStr = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
 	with open(filename, "a") as f:
-		f.write('{}\t{}\t{}\t{}\t{}\r'.format(timeStr,ambient_temperature_f,humidity,hvac_state,target_temperature_f))
+		f.write('{}\t{}\t{}\t{}\t{}\t{}\r'.format(timeStr,ambient_temperature_f,humidity,hvac_state,target_temperature_f,fan_timer_active))
 
 
 print("run time:", time.clock() - start_time, "sec")

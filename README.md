@@ -21,3 +21,4 @@ Each run will append to log file(s); there is a different log file for each ther
 The log files show the following per line in order:
 	datetime, inside temperature, inside relative humidity, current state, target temperature.
 
+Temperatures are in Fahrenheit, but can be changed to Celsius with little effort.
