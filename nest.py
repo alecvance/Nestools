@@ -83,9 +83,17 @@ for deviceID, thermostat in thermostats.items():
     with open(filename, "a") as f:
         f.write('{}\t{}\t{}\t{}\t{}\t{}\r'.format(timeStr,ambient_temperature_f,humidity,hvac_state,target_temperature_f,fan_timer_active))
 
+    if(hvac_mode == "heat-cool"):
+        target_temperature_f = thermostat['target_temperature_high_f']
+
+
     if (int(humidity) > max_rh) and ( hvac_state == "off"):
         if(email):
-            email_alert("Humidity at {} is above {}%RH. It is currently at {}%RH and {}F.\r System status is {} and target temp is {}F.".format(device_name_long,max_rh,humidity,ambient_temperature_f,hvac_state,target_temperature_f))
+            if(hvac_mode == "heat-cool"):
+                email_alert("Humidity at {} is above {}%RH. It is currently at {}%RH and {}F.\r System status is {} and target temp is {}F-{}F.".format(device_name_long,max_rh,humidity,ambient_temperature_f,hvac_state,thermostat['target_temperature_low_f'],target_temperature_f))
+            else:
+                email_alert("Humidity at {} is above {}%RH. It is currently at {}%RH and {}F.\r System status is {} and target temp is {}F.".format(device_name_long,max_rh,humidity,ambient_temperature_f,hvac_state,target_temperature_f))
+
             print("sent email.")
 
 
