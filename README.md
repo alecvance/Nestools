@@ -16,7 +16,8 @@ Once you have a token:
 
 5) Rename sample.config to nest.config and put your access token in there.
 6) Install Python 3 if necessary.
-7) Run the script from a terminal: "python3 nest.py", or add to your crontab to run periodically. 
+7) Run the script from a terminal: "python3 nest.py", or add to your crontab to run periodically. For example, here is mine that checks thermostats and runs every 15 minutes:
+*/15 * * * * cd ~/Nestools/ && /usr/local/bin/python3 nest.py
 
 Each run will append to log file(s); there is a different log file for each thermostat.
 
@@ -25,6 +26,6 @@ The log files show the following per line in order:
 
 Temperatures are in Fahrenheit, but can be changed to Celsius with little effort.
 
-If wish to use the email alert system, enter your email address and smtp server and port. You may also wish to adjust the maximum  relative humidity  (max_rh) before alerts occur. 
+If wish to use the email alert system, enter your email address and smtp server and port in the config file. You may also wish to adjust the maximum  relative humidity  (max_rh) before alerts occur. 
 
-* I created this script because our South Louisiana house traps humidity and Nest's "Cool to Dry" feature will not activate if the temperature is less than 75-80 degrees. If Nest engineers lived in a very humid environment like the Gulf Coast, they might realize that this is a ridiculous limitation. 
+* I created this script because our South Louisiana house traps humidity and Nest's "Cool to Dry" feature will not activate if the temperature is less than 75-80 degrees. (If Nest engineers lived in a very humid environment like the Gulf Coast, they might realize that this is a ridiculous limitation.)

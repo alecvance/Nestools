@@ -120,7 +120,7 @@ for deviceID, thermostat in thermostats.items():
             else:
                 if(hvac_mode == "cool"):
                     post_json = {"target_temperature_f" : target_temperature_f}
-                
+
 
             if(post_json != {}):
 
@@ -147,7 +147,7 @@ for deviceID, thermostat in thermostats.items():
                         print(str(response.status) + response.read().decode() )
                         raise Exception("Redirect with non 200 response")
 
-                messageText += str(response.code) + response.read().decode() + "\n\r"
+                #messageText += str(response.code) + response.read().decode() + "\n\r"
 
 
 
