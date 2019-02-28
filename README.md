@@ -1,6 +1,8 @@
-This script is a template to start working with the Nest API and log data from your thermostats. It can also optionally email you an alert when the relative humidity is above a certain amount.*
+This script builds on the NestLogger script to provide additional tools to maintain your Nest thermostat.
 
-It does not do any authentication; you will have to do that manually in order to get a token. 
+In addition to logging data from your thermostats, it can  optionally email you an alert when the relative humidity is above a certain amount, and set your thermostat's target temperature when using cooling mode in order to deal with excessive humidity. The Nest thermostat has a "Cool to Dry" feature, but it will not let you use it at temperatures below 80 degrees (F) for some mysterious reason when you're in normal/home mode, and below 75 degrees when in away/Eco mode. This script allows you to take control of your thermostat without these restrictions.
+
+In order to authenticate using this script you will need a developer token. 
 The steps are generally outlined below. For specifics, see the Nest Developer site.
 
 To get an access token:
