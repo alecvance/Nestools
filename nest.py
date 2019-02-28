@@ -10,7 +10,7 @@ from email.mime.image import MIMEImage
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
-def email_alert(messageText):
+def email_alert(subjectText, messageText):
     s = smtplib.SMTP(host=smtp, port=smtp_port)
 
     msg = MIMEMultipart()       # create a message
@@ -18,7 +18,7 @@ def email_alert(messageText):
     # setup the parameters of the message
     msg['From']=email
     msg['To']=email
-    msg['Subject']="NestLogger alert"
+    msg['Subject']="Nestools alert: "+ subjectText
 
     # add in the message body
     msg.attach(MIMEText(messageText, 'plain'))
@@ -51,7 +51,7 @@ max_rh = int(config['DEFAULT']['max_rh'])
 
 #connect to the Nest API to get current status of each thermostat in account
 conn = http.client.HTTPSConnection("developer-api.nest.com")
-headers = {'authorization': "Bearer {0}".format(token)}
+headers = {'Authorization': "Bearer {0}".format(token)}
 conn.request("GET", "/", headers=headers)
 response = conn.getresponse()
 
@@ -102,16 +102,65 @@ for deviceID, thermostat in thermostats.items():
     else:
         messageText += "{}F. \n\r".format(target_temperature_f)
 
+    #humidity alerts happen ONLY when the system is off
     if (int(humidity) > max_rh) and ( hvac_state == "off"):
 
         messageText += ("# WARNING: Humidity at {} is above {}%RH. \n\r").format(device_name_long,max_rh)
 
-        if(email):
-            email_alert(messageText)
-            print("sent email.")
+        # turn on and lower temp on thermostat to 1 degree below target
+        if target_temperature_f >= ambient_temperature_f:
+            target_temperature_f = ambient_temperature_f - 1;
+
+            post_json = {}
+
+            if(hvac_mode == "heat-cool"):
+                if target_temperature_f >= thermostat['target_temperature_low_f']:
+                    post_json = {"target_temperature_high_f": target_temperature_f}
+
+            else:
+                if(hvac_mode == "cool"):
+                    post_json = {"target_temperature_f" : target_temperature_f}
+                
+
+            if(post_json != {}):
+
+                print(("setting new target temp: {}F").format(target_temperature_f))
+
+                # post the new temperature
+                deviceURL = "/devices/thermostats/" + deviceID
+
+                conn2 = http.client.HTTPSConnection("developer-api.nest.com")
+
+                headers = {'Authorization': "Bearer {0}".format(token), 'Content-type': 'application/json'}
+
+                print(json.dumps(post_json))
+                conn2.request("PUT", deviceURL, json.dumps(post_json), headers=headers)
+                response = conn2.getresponse()
+
+                if response.status == 307:
+                    redirectLocation = urlparse(response.getheader("location"))
+                    conn2 = http.client.HTTPSConnection(redirectLocation.netloc)
+                    conn2.request("PUT", deviceURL, json.dumps(post_json), headers=headers)
+
+                    response = conn2.getresponse()
+                    if response.status != 200:
+                        print(str(response.status) + response.read().decode() )
+                        raise Exception("Redirect with non 200 response")
+
+                messageText += str(response.code) + response.read().decode() + "\n\r"
+
+
+
+            if(email):
+                email_alert(device_name_long, messageText)
+                print("sent email.")
 
     else:
          messageText += "Humidity at {} is within range. ( <= {}%RH.) \n\r".format(device_name_long,max_rh)
+
+
+
+
 
     print(messageText)
 
