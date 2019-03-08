@@ -90,22 +90,23 @@ for deviceID, thermostat in thermostats.items():
 
     timeStr = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
+    #write log file line
     with open(filename, "a") as f:
-        f.write('{}\t{}\t{}\t{}\t{}\t{}\r'.format(timeStr,ambient_temperature_f,humidity,hvac_state,target_temperature_f,fan_timer_active))
+        f.write('{}\t{}\t{}\t{}\t{}\t{}\n'.format(timeStr,ambient_temperature_f,humidity,hvac_state,target_temperature_f,fan_timer_active))
 
-    messageText = "\n\r Humidity at {} is currently at {}%RH and {}F.\n\r System status is {} and target temp is " .format(device_name_long,humidity,ambient_temperature_f,hvac_state)
+    messageText = "Humidity at {} is currently at {}%RH and {}F.\n System status is {} and target temp is " .format(device_name_long,humidity,ambient_temperature_f,hvac_state)
 
     if(hvac_mode == "heat-cool"):
         target_temperature_f = thermostat['target_temperature_high_f']
         #target temp is a range
-        messageText += "{}F-{}F. \n\r ".format(thermostat['target_temperature_low_f'],target_temperature_f)
+        messageText += "{}F-{}F. \n ".format(thermostat['target_temperature_low_f'],target_temperature_f)
     else:
-        messageText += "{}F. \n\r".format(target_temperature_f)
+        messageText += "{}F. \n".format(target_temperature_f)
 
     #humidity alerts happen ONLY when the system is off
     if (int(humidity) > max_rh) and ( hvac_state == "off"):
 
-        messageText += ("# WARNING: Humidity at {} is above {}%RH. \n\r").format(device_name_long,max_rh)
+        messageText += ("# WARNING: Humidity at {} is above {}%RH. \n").format(device_name_long,max_rh)
 
         # turn on and lower temp on thermostat to 1 degree below target
         if target_temperature_f >= ambient_temperature_f:
@@ -133,7 +134,7 @@ for deviceID, thermostat in thermostats.items():
 
                 headers = {'Authorization': "Bearer {0}".format(token), 'Content-type': 'application/json'}
 
-                print(json.dumps(post_json))
+                #print(json.dumps(post_json))
                 conn2.request("PUT", deviceURL, json.dumps(post_json), headers=headers)
                 response = conn2.getresponse()
 
@@ -147,7 +148,8 @@ for deviceID, thermostat in thermostats.items():
                         print(str(response.status) + response.read().decode() )
                         raise Exception("Redirect with non 200 response")
 
-                #messageText += str(response.code) + response.read().decode() + "\n\r"
+                #messageText += str(response.code) + response.read().decode() + "\n"
+                messageText += ("Lowering thermostat to {}F.\n").format(target_temperature_f)
 
 
 
@@ -155,8 +157,8 @@ for deviceID, thermostat in thermostats.items():
                 email_alert(device_name_long, messageText)
                 print("sent email.")
 
-    else:
-         messageText += "Humidity at {} is within range. ( <= {}%RH.) \n\r".format(device_name_long,max_rh)
+    #else:
+         #messageText += "Humidity at {} is within range. ( <= {}%RH.) \n".format(device_name_long,max_rh)
 
 
 
