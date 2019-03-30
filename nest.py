@@ -49,6 +49,11 @@ smtp_port = int(config['DEFAULT']['smtp_port'])
 # maximum relative humidity; greater than this will trigger an email if email is set.
 max_rh = int(config['DEFAULT']['max_rh'])
 
+# cool to dry settings.
+cool_to_dry = bool(config['DEFAULT']['cool_to_dry'])
+cool_to_dry_min_f = int(config['DEFAULT']['cool_to_dry_min_f'])
+
+
 #connect to the Nest API to get current status of each thermostat in account
 conn = http.client.HTTPSConnection("developer-api.nest.com")
 headers = {'Authorization': "Bearer {0}".format(token)}
@@ -108,48 +113,52 @@ for deviceID, thermostat in thermostats.items():
 
         messageText += ("# WARNING: Humidity at {} is above {}%RH. \n").format(device_name_long,max_rh)
 
-        # turn on and lower temp on thermostat to 1 degree below target
-        if target_temperature_f >= ambient_temperature_f:
-            target_temperature_f = ambient_temperature_f - 1;
+        #make sure cool to dry is on, and the current temp is greater than the minimum set in the config file
+        if cool_to_dry == true:
 
-            post_json = {}
+            if ambient_temperature_f > cool_to_dry_min_f :
+                # turn on and lower temp on thermostat to 1 degree below target
+                if target_temperature_f >= ambient_temperature_f:
+                    target_temperature_f = ambient_temperature_f - 1;
 
-            if(hvac_mode == "heat-cool"):
-                if target_temperature_f >= thermostat['target_temperature_low_f']:
-                    post_json = {"target_temperature_high_f": target_temperature_f}
+                    post_json = {}
 
-            else:
-                if(hvac_mode == "cool"):
-                    post_json = {"target_temperature_f" : target_temperature_f}
+                    if(hvac_mode == "heat-cool"):
+                        if target_temperature_f >= thermostat['target_temperature_low_f']:
+                            post_json = {"target_temperature_high_f": target_temperature_f}
+
+                    else:
+                        if(hvac_mode == "cool"):
+                            post_json = {"target_temperature_f" : target_temperature_f}
 
 
-            if(post_json != {}):
+                    if(post_json != {}):
 
-                print(("setting new target temp: {}F").format(target_temperature_f))
+                        print(("setting new target temp: {}F").format(target_temperature_f))
 
-                # post the new temperature
-                deviceURL = "/devices/thermostats/" + deviceID
+                        # post the new temperature
+                        deviceURL = "/devices/thermostats/" + deviceID
 
-                conn2 = http.client.HTTPSConnection("developer-api.nest.com")
+                        conn2 = http.client.HTTPSConnection("developer-api.nest.com")
 
-                headers = {'Authorization': "Bearer {0}".format(token), 'Content-type': 'application/json'}
+                        headers = {'Authorization': "Bearer {0}".format(token), 'Content-type': 'application/json'}
 
-                #print(json.dumps(post_json))
-                conn2.request("PUT", deviceURL, json.dumps(post_json), headers=headers)
-                response = conn2.getresponse()
+                        #print(json.dumps(post_json))
+                        conn2.request("PUT", deviceURL, json.dumps(post_json), headers=headers)
+                        response = conn2.getresponse()
 
-                if response.status == 307:
-                    redirectLocation = urlparse(response.getheader("location"))
-                    conn2 = http.client.HTTPSConnection(redirectLocation.netloc)
-                    conn2.request("PUT", deviceURL, json.dumps(post_json), headers=headers)
+                        if response.status == 307:
+                            redirectLocation = urlparse(response.getheader("location"))
+                            conn2 = http.client.HTTPSConnection(redirectLocation.netloc)
+                            conn2.request("PUT", deviceURL, json.dumps(post_json), headers=headers)
 
-                    response = conn2.getresponse()
-                    if response.status != 200:
-                        print(str(response.status) + response.read().decode() )
-                        raise Exception("Redirect with non 200 response")
+                            response = conn2.getresponse()
+                            if response.status != 200:
+                                print(str(response.status) + response.read().decode() )
+                                raise Exception("Redirect with non 200 response")
 
-                #messageText += str(response.code) + response.read().decode() + "\n"
-                messageText += ("Lowering thermostat to {}F.\n").format(target_temperature_f)
+                        #messageText += str(response.code) + response.read().decode() + "\n"
+                        messageText += ("Lowering thermostat to {}F.\n").format(target_temperature_f)
 
 
 
