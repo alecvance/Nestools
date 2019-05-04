@@ -114,7 +114,7 @@ for deviceID, thermostat in thermostats.items():
         messageText += ("# WARNING: Humidity at {} is above {}%RH. \n").format(device_name_long,max_rh)
 
         #make sure cool to dry is on, and the current temp is greater than the minimum set in the config file
-        if cool_to_dry == true:
+        if cool_to_dry:
 
             if ambient_temperature_f > cool_to_dry_min_f :
                 # turn on and lower temp on thermostat to 1 degree below target
