@@ -11,11 +11,8 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 def email_alert(subjectText, messageText):
-    s = smtplib.SMTP(host=smtp, port=smtp_port)
 
-    msg = MIMEMultipart()       # create a message
-
-    # setup the parameters of the message
+    msg = MIMEMultipart()
     msg['From']=email
     msg['To']=email
     msg['Subject']="Nestools alert: "+ subjectText
@@ -23,9 +20,14 @@ def email_alert(subjectText, messageText):
     # add in the message body
     msg.attach(MIMEText(messageText, 'plain'))
 
-    # send the message via the server set up earlier.
-    s.send_message(msg)
+    # connect a server, login and send the mail
+   # s = smtplib.SMTP(host=smtp, port=smtp_port)
+    s = smtplib.SMTP_SSL("" + smtp + ":" + smtp_port)
 
+    #s.starttls()
+    s.login(email,password)
+    s.sendmail(email,email,msg.as_string())
+    s.quit()
     del msg
     return
 
@@ -42,9 +44,12 @@ token = config['DEFAULT']['token']
 #email to send alerts to
 email = config['DEFAULT']['email']
 
+#password for email
+password = config['DEFAULT']['password']
+
 #smtp (sendmail) configuration
 smtp = config['DEFAULT']['smtp']
-smtp_port = int(config['DEFAULT']['smtp_port'])
+smtp_port = config['DEFAULT']['smtp_port']
 
 # maximum relative humidity; greater than this will trigger an email if email is set.
 max_rh = int(config['DEFAULT']['max_rh'])
@@ -173,6 +178,9 @@ for deviceID, thermostat in thermostats.items():
 
 
 
+
     print(messageText)
+
+#email_alert("test subject", "test message")
 
 print("run time:", time.perf_counter() - start_time, "sec")
